@@ -1,0 +1,77 @@
+@import url('https://rsms.me/inter/inter.css');
+@layer base {
+    :root {
+        --clr-primary: 144deg 90% 39%;
+        --clr-primary-dark: 144deg 86% 36%;
+        --clr-primary-light: 144deg 70% 45%;
+        --clr-secondary: 222deg 47% 11%;
+        --clr-secondary-dark: 222deg 45% 9%;
+        --clr-secondary-light: 215deg 25% 27%;
+        --clr-text: 217deg 19% 27%;
+        --clr-text-dark: 144deg 37% 7%;
+        --clr-light-gray: 0deg 0% 33%;
+        --clr-white: 144deg 0% 100%;
+        --h-header: 3.75rem;
+        --p-body: 2.75rem;
+        --gap: 1.75rem;
+        --max-container: 92rem;
+    }
+    @screen md {
+        :root {
+            --p-body: 1.75rem;
+            --max-container: 75rem;
+        }
+    }
+    @screen sm {
+        :root {
+            --p-body: 1.25rem;
+            --gap: 1.25rem;
+            --max-container: 40rem;
+        }
+    }
+    @screen xs {
+        :root {
+            --p-body: 0.75rem;
+            --gap: 0.75rem;
+        }
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: 100%;
+        color: hsl(var(--clr-text));
+        background-color: hsl(var(--clr-white));
+        overflow-x: hidden;
+    }
+    @supports (font-variation-settings: normal) {
+        body {
+            font-family: 'Inter var', 'Segoe UI', sans-serif;
+        }
+    }
+
+    * {
+        @apply focus-within:outline-none focus:outline-none focus-visible:outline-none;
+        @apply caret-primary-dark;
+    }
+
+    ::-moz-selection {
+        color: white;
+        background: hsl(var(--clr-primary));
+    }
+    ::selection {
+        color: white;
+        background: hsl(var(--clr-primary));
+    }
+    input {
+        outline: none;
+    }
+    a {
+        display: inline-block;
+    }
+}

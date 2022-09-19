@@ -2,7 +2,7 @@ import axios from 'axios';
 import QueryString from 'qs';
 
 const client = axios.create({
-    baseURL: 'http://localhost:1337/api',
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
     paramsSerializer: (p) => {
         return QueryString.stringify(p, { encodeValuesOnly: false });
     },

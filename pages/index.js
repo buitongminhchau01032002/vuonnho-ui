@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { ArrowSmallRightIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { FacebookOutlineIcon } from '../components/Icons';
 
+import client from '../axios';
 import DefaultLayout from '../layouts/DefaultLayout';
 import Button from '../components/Button';
 import HighlightProductSlide from '../components/HighlightProductSlide/HighlightProductSlide';
-import client from '../axios';
 
 export default function Home({ highlightProducts }) {
     return (

@@ -56,7 +56,7 @@ export default function Shop({ products }) {
                         </h4>
                         <ul className="divide-y divide-gray-200">
                             {cart?.products?.map((productCart) => (
-                                <ProductCard productCart={productCart} />
+                                <ProductCard productCart={productCart} key={cart?.product?.id} />
                             ))}
                         </ul>
                     </div>

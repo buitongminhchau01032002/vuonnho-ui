@@ -34,11 +34,11 @@ const sort = [
     },
     {
         label: 'Giá cao nhất',
-        query: 'listPrice:desc',
+        query: 'salePrice:desc',
     },
     {
         label: 'Giá thấp nhất',
-        query: 'listPrice:asc',
+        query: 'salePrice:asc',
     },
 ];
 

@@ -1,7 +1,10 @@
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
+import client from '../axios';
 import { useSelector } from 'react-redux';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 import DefaultLayout from '../layouts/DefaultLayout';
 import Button from '../components/Button';
@@ -11,6 +14,7 @@ import QuantityInput from '../components/QuantityInput';
 import CheckboxGroup from '../components/CheckboxGroup/CheckboxGroup';
 import chooseImageUrl from '../utils/chooseImageUrl';
 import { cartSelector } from '../redux/selectors';
+import { LoadingIcon } from '../components/Icons';
 
 const TIMES = [
     { value: '1', label: '8h30-10h' },
@@ -21,7 +25,7 @@ const TIMES = [
     { value: '6', label: '15h-20h50' },
 ];
 
-export default function Shop({ products }) {
+export default function Cart({ orderConfirmationTimes }) {
     const cart = useSelector(cartSelector);
     return (
         <DefaultLayout>
@@ -51,22 +55,39 @@ export default function Shop({ products }) {
                 <div className="flex w-full max-w-container flex-wrap">
                     {/* PRODUCTS */}
                     <div className="w-1/2 sm:w-full">
-                        <h4 className="mb-4 text-lg font-semibold text-clr-text-dark">
-                            Sản phẩm trong giỏ hàng
-                        </h4>
-                        <ul className="divide-y divide-gray-200">
-                            {cart?.products?.map((productCart) => (
-                                <ProductCard productCart={productCart} key={cart?.product?.id} />
-                            ))}
-                        </ul>
+                        {cart?.products?.length !== 0 && (
+                            <h4 className="mb-4 text-lg font-semibold text-clr-text-dark">
+                                Sản phẩm trong giỏ hàng
+                            </h4>
+                        )}
+                        {cart?.products?.length !== 0 ? (
+                            <ul className="divide-y divide-gray-200">
+                                {cart?.products?.map((productCart) => (
+                                    <ProductCard
+                                        productCart={productCart}
+                                        key={cart?.product?.id}
+                                    />
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="flex flex-col items-center">
+                                <p className="mt-4 px-4 text-center text-lg font-bold text-clr-text-dark">
+                                    Chưa có sản phẩm trong giỏ hàng
+                                </p>
+                                <p className="mt-2 text-sm">Hãy đến shop để mua sản phẩm</p>
+                                <Button className="mt-5 mb-6 xs:w-full" href="/shop">
+                                    Đến shop ngay
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     {/* FORM */}
-                    <div className="w-1/2 pl-8 sm:w-full sm:pl-0">
+                    <div className="w-1/2 pl-8 sm:mt-5 sm:w-full sm:pl-0">
                         <h4 className="mb-4 text-lg font-semibold text-clr-text-dark">
                             Thông tin nhận hàng
                         </h4>
-                        <FormDelivery />
+                        <FormDelivery orderConfirmationTimes={orderConfirmationTimes} />
                     </div>
                 </div>
             </section>
@@ -139,45 +160,141 @@ function ProductCard({ productCart, className }) {
     );
 }
 
-function FormDelivery() {
+function FormDelivery({ orderConfirmationTimes }) {
     const [times, setTimes] = useState([]);
+    const [orderConfirmationTimeError, setOrderConfirmationTimeError] = useState(
+        'Chọn ít nhất 1 khoảng thời gian'
+    );
+    const [orderConfirmationTimeTouched, setOrderConfirmationTimeTouched] = useState(false);
+    const [peddingSubmit, setPeddingSubmit] = useState(false);
+
+    const validationSchema = Yup.object({
+        name: Yup.string()
+            .max(50, 'Tên không được quá 50 kí tự')
+            .required('Trường này không được để trống'),
+        phone: Yup.string()
+            .matches(/^[0-9]+$/, 'Số điện thoại phải là số')
+            .max(15, 'Số điện thoại không được quá 15 số')
+            .min(9, 'Số điện thoại phải từ 9 số')
+            .required('Trường này không được để trống'),
+        address: Yup.string()
+            .max(250, 'Địa chỉ không được quá 250 kí tự')
+            .required('Trường này không được để trống'),
+    });
+
+    const formik = useFormik({
+        initialValues: {
+            name: '',
+            phone: '',
+            address: '',
+            orderConfirmationTimes: [],
+        },
+        validationSchema,
+        onSubmit: (values) => {
+            setPeddingSubmit(true);
+            // todo: CALL API
+            setTimeout(() => {
+                setPeddingSubmit(false);
+                alert(JSON.stringify(values));
+            }, 2000);
+        },
+    });
+
+    function formatTime(time) {
+        return time[0] + time[1] + 'h' + time[3] + time[4];
+    }
+
+    function handleTimeChange(values) {
+        setTimes(values);
+        if (!orderConfirmationTimeTouched) {
+            setOrderConfirmationTimeTouched(true);
+        }
+        formik.setFieldValue('orderConfirmationTimes', times);
+        if (times.length > 0 && orderConfirmationTimeError) {
+            setOrderConfirmationTimeError(null);
+        }
+        if (times.length === 0) {
+            setOrderConfirmationTimeError('Chọn ít nhất 1 khoảng thời gian');
+        }
+    }
+
     return (
-        <div className="">
+        <form onSubmit={formik.handleSubmit}>
             <div className="mb-4 flex flex-col">
                 <label className="mb-2 text-sm font-semibold">Họ tên *</label>
                 <input
                     type="text"
-                    className="rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary"
+                    name="name"
+                    className={clsx(
+                        'rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
+                        {
+                            '!ring-red-500 focus:!ring-1 ':
+                                formik.touched.name && formik.errors.name,
+                        }
+                    )}
                     placeholder="VD: Nguyễn Văn A"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.name}
                 />
+                {formik.touched.name && formik.errors.name && (
+                    <div className="text-sm text-red-500">{formik.errors.name}</div>
+                )}
             </div>
             <div className="mb-4 flex flex-col">
                 <label className="mb-2 text-sm font-semibold">Số điện thoại *</label>
                 <input
                     type="text"
-                    className="rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary"
+                    name="phone"
+                    className={clsx(
+                        'rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
+                        {
+                            '!ring-red-500 focus:!ring-1':
+                                formik.touched.phone && formik.errors.phone,
+                        }
+                    )}
                     placeholder="VD: 0123456789"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.phone}
                 />
+                {formik.touched.phone && formik.errors.phone && (
+                    <div className="text-sm text-red-500">{formik.errors.phone}</div>
+                )}
             </div>
             <div className="mb-4 flex flex-col">
                 <label className="mb-2 text-sm font-semibold">Địa chỉ nhận hàng *</label>
                 <textarea
                     rows="3"
-                    className="resize-none rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary"
+                    name="address"
+                    className={clsx(
+                        'resize-none rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
+                        {
+                            '!ring-red-500 focus:!ring-1':
+                                formik.touched.address && formik.errors.address,
+                        }
+                    )}
                     placeholder="VD: Số 100, đường Gì Đó, Phường 50, quận Ngẫu Nhiên, TPHCM"
+                    onBlur={formik.handleBlur}
+                    onChange={formik.handleChange}
+                    value={formik.values.address}
                 ></textarea>
+                {formik.touched.address && formik.errors.address && (
+                    <div className="text-sm text-red-500">{formik.errors.address}</div>
+                )}
             </div>
             <div className="mb-4 flex flex-col">
                 <label className="mb-2 text-sm font-semibold">Thời gian xác nhận đơn hàng *</label>
                 <div className="flex flex-wrap">
-                    <CheckboxGroup values={times} setValues={setTimes}>
-                        {TIMES.map((time) => (
+                    <CheckboxGroup values={times} setValues={handleTimeChange}>
+                        {orderConfirmationTimes?.map((time) => (
                             <CheckboxGroup.Option
-                                key={time.value}
-                                value={time.value}
+                                key={time.id}
+                                value={time.id}
+                                as="div"
                                 className={({ selected }) =>
                                     clsx(
-                                        'mr-2 mt-2 rounded-sm px-3 py-2 text-sm font-medium ring-1  transition-colors ',
+                                        ' mr-2 mt-2 cursor-pointer rounded-sm px-3 py-2 text-sm font-medium ring-1  transition-colors ',
 
                                         {
                                             'ring-gray-300 can-hover:hover:ring-gray-400':
@@ -188,17 +305,54 @@ function FormDelivery() {
                                     )
                                 }
                             >
-                                {time.label}
+                                {formatTime(time?.attributes?.time?.begin) +
+                                    ' - ' +
+                                    formatTime(time?.attributes?.time?.end)}
                             </CheckboxGroup.Option>
                         ))}
                     </CheckboxGroup>
                 </div>
+                {orderConfirmationTimeError && orderConfirmationTimeTouched && (
+                    <div className="text-sm text-red-500">{orderConfirmationTimeError}</div>
+                )}
             </div>
             <div className="mt-10 flex flex-wrap">
-                <Button lg className={clsx('min-w-[10rem] xs:w-full')}>
-                    Đặt hàng
+                <Button
+                    lg
+                    type="submit"
+                    disabled={
+                        Object.keys(formik.errors).length !== 0 ||
+                        orderConfirmationTimeError ||
+                        peddingSubmit
+                    }
+                    className={clsx('min-w-[10rem] xs:w-full')}
+                >
+                    {peddingSubmit && <LoadingIcon className="mr-2 h-5 w-5 animate-spin" />}
+                    {!peddingSubmit ? <span>Đặt hàng</span> : <span>Đang đặt hàng</span>}
                 </Button>
             </div>
-        </div>
+        </form>
     );
+}
+
+export async function getServerSideProps() {
+    let orderConfirmationTimes = [];
+    try {
+        const orderConfirmationTimesRes = await client.get('/order-confirmation-times', {
+            params: {
+                populate: ['time'],
+            },
+        });
+        console.log(orderConfirmationTimesRes);
+        orderConfirmationTimes = orderConfirmationTimesRes.data.data;
+    } catch (e) {
+        console.log(e);
+        orderConfirmationTimes = [];
+    }
+
+    return {
+        props: {
+            orderConfirmationTimes,
+        },
+    };
 }

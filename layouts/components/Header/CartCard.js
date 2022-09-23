@@ -16,7 +16,7 @@ export default function CartCard({ productCart, className }) {
     const dispatch = useDispatch();
     const debounceDispatch = useDebouncedCallback((quantity) => {
         dispatch(cartActions.updateQuantity({ id: productCart.id, quantity }));
-    }, 500);
+    }, 300);
     useEffect(() => {
         setQty(productCart.quantity);
     }, [productCart.quantity]);

@@ -50,15 +50,22 @@ export default function CartPanel({ isOpen, className, handleClose }) {
                                 <div className="flex justify-between ">
                                     <p className="mr-6 font-medium text-clr-text-dark">Tổng tiền</p>
                                     <div className="flex items-baseline">
-                                        <p className="mr-3 text-xs line-through">
-                                            <PriceFomater>100000</PriceFomater>
-                                        </p>
+                                        {cart.totalBilling.intoMoney <
+                                            cart.totalBilling.totalMoney && (
+                                            <p className="mr-3 text-xs line-through">
+                                                <PriceFomater>{carttotalMoney}</PriceFomater>
+                                            </p>
+                                        )}
                                         <p className="font-medium text-clr-text-dark">
-                                            <PriceFomater>100000</PriceFomater>
+                                            <PriceFomater>
+                                                {cart.totalBilling.intoMoney}
+                                            </PriceFomater>
                                         </p>
                                     </div>
                                 </div>
-                                <p className="text-sm">12 sản phẩm</p>
+                                <p className="text-sm">
+                                    {cart.totalBilling.numOfProducts + ' sản phẩm'}
+                                </p>
                                 <Button href="/cart" className="mt-3 w-full">
                                     Mua ngay
                                 </Button>

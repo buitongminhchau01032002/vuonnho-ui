@@ -106,6 +106,7 @@ export async function getServerSideProps() {
                 category: {
                     fields: ['slug'],
                 },
+                priceRules: true,
             },
         },
     });

@@ -141,7 +141,6 @@ function ProductCard({ productCart, className }) {
 
 function FormDelivery() {
     const [times, setTimes] = useState([]);
-    console.log(times);
     return (
         <div className="">
             <div className="mb-4 flex flex-col">

@@ -367,6 +367,7 @@ export async function getServerSideProps({ params, query }) {
                 category: {
                     fields: ['slug'],
                 },
+                priceRules: true,
             },
         },
     });

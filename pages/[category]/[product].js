@@ -21,7 +21,7 @@ import QuantityInput from '../../components/QuantityInput/QuantityInput';
 import client from '../../axios';
 
 export default function ProductDetailPage({ product, highlightProducts }) {
-    const { name, description, detail, listPrice, salePrice, images, category, priceRule, slug } =
+    const { name, description, detail, listPrice, salePrice, images, category, priceRules, slug } =
         product?.attributes ?? {};
     const [qty, setQty] = useState(1);
     const dispatch = useDispatch();
@@ -292,9 +292,7 @@ export async function getServerSideProps(context) {
                 category: {
                     fields: ['name', 'slug'],
                 },
-                priceRule: {
-                    fields: ['quantity', 'priceOneProduct'],
-                },
+                priceRules: true,
             },
         },
     });
@@ -321,6 +319,7 @@ export async function getServerSideProps(context) {
                 category: {
                     fields: ['slug'],
                 },
+                priceRules: true,
             },
         },
     });

@@ -206,7 +206,7 @@ export default function ShopPage({ products, category, meta }) {
                                     <ChevronDownIcon className="h-4 w-4" />
                                 </Listbox.Button>
                                 {open && (
-                                    <div className="fixed inset-0 hidden bg-black/20 sm:block" />
+                                    <div className="fixed inset-0 z-10 hidden bg-black/30 sm:block" />
                                 )}
                                 <Listbox.Options
                                     as="div"
@@ -358,7 +358,7 @@ export async function getServerSideProps({ params, query }) {
             sort: sort ?? 'createdAt:desc',
             pagination: {
                 page: page || 1,
-                pageSize: 4,
+                pageSize: 12,
             },
             populate: {
                 images: {

@@ -64,8 +64,8 @@ export default function ProductDetailPage({ product, highlightProducts }) {
                     </div>
 
                     {/* RIGHT */}
-                    <div className="w-1/2 sm:w-full">
-                        <h1 className="text-3xl font-bold text-clr-text-dark xs:text-2xl">
+                    <div className="w-1/2 sm:mt-3 sm:w-full">
+                        <h1 className="text-3xl font-semibold text-clr-text-dark xs:text-2xl">
                             {name ?? 'Sản phẩm không xác định'}
                         </h1>
                         <div className="mt-2 flex items-baseline">
@@ -79,9 +79,30 @@ export default function ProductDetailPage({ product, highlightProducts }) {
                             )}
                         </div>
                         <p className="mt-5 xs:text-sm">{description}</p>
+                        {priceRules && (
+                            <div className="mt-4">
+                                <span className="font-semibold">Giá bán sĩ:</span>
+                                {priceRules?.map((priceRules) => (
+                                    <div
+                                        key={priceRules?.minQuantity}
+                                        className="flex items-baseline"
+                                    >
+                                        <p className="text-2xl font-light text-primary sm:text-xl">
+                                            <PriceFomater>{priceRules.price}</PriceFomater>
+                                        </p>
+                                        <p className="ml-1">
+                                            {'x'}
+                                            {priceRules.minQuantity}
+                                        </p>
+                                        <p className="ml-2 font-medium">{`cho ${priceRules.minQuantity} sản phẩm`}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         <div className="mt-5 flex w-full max-w-xs flex-col xs:max-w-full">
-                            <div className="mb-2 flex justify-between">
-                                <span className="font-semibold">Số lượng:</span>
+                            <span className="font-semibold">Chọn mua:</span>
+                            <div className="mb-2 flex items-center justify-between">
+                                <span>Số lượng:</span>
                                 <QuantityInput value={qty} setValue={setQty} minValue={1} />
                             </div>
                             <Button
@@ -179,7 +200,7 @@ function ProductImageSlide({ images }) {
                             </SwiperSlide>
                         ))}
                 </Swiper>
-                <div className="absolute inset-0 flex justify-between can-hover:opacity-0 can-hover:group-hover:opacity-100">
+                <div className="absolute inset-0 flex justify-between overflow-hidden rounded-md can-hover:opacity-0 can-hover:group-hover:opacity-100">
                     <button
                         className={clsx(
                             'relative z-[50] inline-flex h-full w-12 items-center justify-center can-hover:bg-black/20 can-hover:hover:bg-black/40',

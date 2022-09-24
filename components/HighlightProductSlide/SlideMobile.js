@@ -18,7 +18,7 @@ export default function SlideMobile({ products }) {
         >
             {products &&
                 products.map((product) => (
-                    <SwiperSlide key={product.id} className="!w-[16.5rem]">
+                    <SwiperSlide key={product.id} className="!w-[14rem]">
                         <ProductCard product={product} />
                     </SwiperSlide>
                 ))}

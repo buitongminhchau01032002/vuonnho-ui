@@ -128,7 +128,14 @@ function ProductCard({ productCart, className }) {
     return (
         <li className={clsx('flex py-3', { [className]: className })}>
             <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md xs:w-20">
-                <Link href="/">
+                <Link
+                    href={
+                        '/' +
+                        productCart?.attributes?.category?.data?.attributes?.slug +
+                        '/' +
+                        productCart?.attributes?.slug
+                    }
+                >
                     <img
                         src={chooseImageUrl(
                             productCart?.attributes?.images?.data?.[0]?.attributes,
@@ -143,7 +150,14 @@ function ProductCard({ productCart, className }) {
             <div className="ml-4 flex flex-1 flex-col justify-between xs:ml-2">
                 <div className="flex items-start">
                     <div className="flex-1">
-                        <Link href="/">
+                        <Link
+                            href={
+                                '/' +
+                                productCart?.attributes?.category?.data?.attributes?.slug +
+                                '/' +
+                                productCart?.attributes?.slug
+                            }
+                        >
                             <a>
                                 <h3 className="font-semibold text-clr-text-dark">
                                     {productCart?.attributes?.name}

@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import Link from 'next/link';
 import { useDebouncedCallback } from 'use-debounce';
 import { useDispatch } from 'react-redux';
 import { cartActions } from '../../../redux/slices/cartSlide';
 
-import NumberInput from '../../../components/NumberInput';
 import PriceFomater from '../../../components/PriceFomater';
 import QuantityInput from '../../../components/QuantityInput/QuantityInput';
 import chooseImageUrl from '../../../utils/chooseImageUrl';

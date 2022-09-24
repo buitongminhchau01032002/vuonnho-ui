@@ -1,9 +1,14 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import client from '../../axios';
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     products: [],
-    totalBilling: {
+    /**
+     * id
+     * quantity
+     * attributes
+     * totalPrice
+     */
+    billing: {
         numOfProducts: 0,
         totalMoney: 0,
         discountMoney: 0,
@@ -17,7 +22,9 @@ function updateBilling(state) {
     for (let i = 0; i < state.products.length; i++) {
         const product = state.products[i];
         if (product.attributes?.priceRules?.length === 0) {
-            totalMoney += product.quantity * product.attributes?.salePrice;
+            const totalPrice = product.quantity * product.attributes?.salePrice;
+            product.totalPrice = totalPrice;
+            totalMoney += totalPrice;
         } else {
             // [...product.attributes?.priceRules] To fix sort
             const priceRulesSorted = [...product.attributes?.priceRules].sort(
@@ -37,7 +44,7 @@ function updateBilling(state) {
         }
     }
     // todo: DISCOUNT RULE
-    state.totalBilling = {
+    state.billing = {
         numOfProducts: state.products.length,
         totalMoney,
         discountMoney: 0,

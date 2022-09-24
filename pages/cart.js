@@ -4,8 +4,11 @@ import clsx from 'clsx';
 import client from '../axios';
 import { useSelector } from 'react-redux';
 import { useFormik } from 'formik';
+import { useDebouncedCallback } from 'use-debounce';
 import * as Yup from 'yup';
+import { useDispatch } from 'react-redux';
 
+import { cartActions } from '../redux/slices/cartSlide';
 import DefaultLayout from '../layouts/DefaultLayout';
 import Button from '../components/Button';
 import BreadcrumbsWithHome from '../components/BreadcrumbsWithHome';
@@ -15,15 +18,6 @@ import CheckboxGroup from '../components/CheckboxGroup/CheckboxGroup';
 import chooseImageUrl from '../utils/chooseImageUrl';
 import { cartSelector } from '../redux/selectors';
 import { LoadingIcon } from '../components/Icons';
-
-const TIMES = [
-    { value: '1', label: '8h30-10h' },
-    { value: '2', label: '10h-12h' },
-    { value: '3', label: '12h-13h' },
-    { value: '4', label: '13h-13h30' },
-    { value: '5', label: '13h30-15h' },
-    { value: '6', label: '15h-20h50' },
-];
 
 export default function Cart({ orderConfirmationTimes }) {
     const cart = useSelector(cartSelector);
@@ -61,14 +55,38 @@ export default function Cart({ orderConfirmationTimes }) {
                             </h4>
                         )}
                         {cart?.products?.length !== 0 ? (
-                            <ul className="divide-y divide-gray-200">
-                                {cart?.products?.map((productCart) => (
-                                    <ProductCard
-                                        productCart={productCart}
-                                        key={cart?.product?.id}
-                                    />
-                                ))}
-                            </ul>
+                            <>
+                                <ul className="divide-y divide-gray-200">
+                                    {cart?.products?.map((productCart) => (
+                                        <ProductCard
+                                            productCart={productCart}
+                                            key={productCart?.id}
+                                        />
+                                    ))}
+                                </ul>
+                                <div className="mt-4 rounded-md border border-primary p-4">
+                                    <div className="mt-2 flex items-center justify-between border-b">
+                                        <span className="font-medium">Tổng tiền:</span>
+                                        <span className="font-medium text-clr-text-dark">
+                                            <PriceFomater>{cart?.billing?.totalMoney}</PriceFomater>
+                                        </span>
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between border-b">
+                                        <span className="font-medium">Giảm giá:</span>
+                                        <span>
+                                            <PriceFomater>
+                                                {cart?.billing?.discountMoney}
+                                            </PriceFomater>
+                                        </span>
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between border-b">
+                                        <span className="font-medium">Thành tiền:</span>
+                                        <span className="text-xl font-semibold text-primary">
+                                            <PriceFomater>{cart?.billing?.intoMoney}</PriceFomater>
+                                        </span>
+                                    </div>
+                                </div>
+                            </>
                         ) : (
                             <div className="flex flex-col items-center">
                                 <p className="mt-4 px-4 text-center text-lg font-bold text-clr-text-dark">
@@ -87,7 +105,10 @@ export default function Cart({ orderConfirmationTimes }) {
                         <h4 className="mb-4 text-lg font-semibold text-clr-text-dark">
                             Thông tin nhận hàng
                         </h4>
-                        <FormDelivery orderConfirmationTimes={orderConfirmationTimes} />
+                        <FormDelivery
+                            products={cart?.products}
+                            orderConfirmationTimes={orderConfirmationTimes}
+                        />
                     </div>
                 </div>
             </section>
@@ -97,6 +118,13 @@ export default function Cart({ orderConfirmationTimes }) {
 
 function ProductCard({ productCart, className }) {
     const [qty, setQty] = useState(1);
+    const dispatch = useDispatch();
+    const debounceDispatch = useDebouncedCallback((quantity) => {
+        dispatch(cartActions.updateQuantity({ id: productCart.id, quantity }));
+    }, 300);
+    useEffect(() => {
+        setQty(productCart.quantity);
+    }, [productCart.quantity]);
     return (
         <li className={clsx('flex py-3', { [className]: className })}>
             <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md xs:w-20">
@@ -140,18 +168,26 @@ function ProductCard({ productCart, className }) {
                     <button
                         type="button"
                         className="pl-2 text-sm font-medium text-primary hover:text-primary-light"
+                        onClick={() => dispatch(cartActions.remove(productCart.id))}
                     >
                         Xoá
                     </button>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center">
                     <div className=" flex-1">
-                        <QuantityInput value={qty} setValue={setQty} minValue={1} />
+                        <QuantityInput
+                            value={qty}
+                            setValue={(value) => {
+                                setQty(value);
+                                debounceDispatch(value);
+                            }}
+                            minValue={1}
+                        />
                     </div>
                     <div className="flex items-baseline">
                         <p className="mr-1 text-sm xs:hidden">Tổng:</p>
                         <p className="font-medium text-primary">
-                            <PriceFomater>100000</PriceFomater>
+                            <PriceFomater>{productCart.totalPrice}</PriceFomater>
                         </p>
                     </div>
                 </div>
@@ -160,8 +196,7 @@ function ProductCard({ productCart, className }) {
     );
 }
 
-function FormDelivery({ orderConfirmationTimes }) {
-    const [times, setTimes] = useState([]);
+function FormDelivery({ products, orderConfirmationTimes }) {
     const [orderConfirmationTimeError, setOrderConfirmationTimeError] = useState(
         'Chọn ít nhất 1 khoảng thời gian'
     );
@@ -201,19 +236,18 @@ function FormDelivery({ orderConfirmationTimes }) {
     });
 
     function formatTime(time) {
-        return time[0] + time[1] + 'h' + time[3] + time[4];
+        return time?.[0] + time?.[1] + 'h' + time?.[3] + time?.[4];
     }
 
     function handleTimeChange(values) {
-        setTimes(values);
         if (!orderConfirmationTimeTouched) {
             setOrderConfirmationTimeTouched(true);
         }
-        formik.setFieldValue('orderConfirmationTimes', times);
-        if (times.length > 0 && orderConfirmationTimeError) {
+        formik.setFieldValue('orderConfirmationTimes', values);
+        if (values.length > 0 && orderConfirmationTimeError) {
             setOrderConfirmationTimeError(null);
         }
-        if (times.length === 0) {
+        if (values.length === 0) {
             setOrderConfirmationTimeError('Chọn ít nhất 1 khoảng thời gian');
         }
     }
@@ -286,7 +320,10 @@ function FormDelivery({ orderConfirmationTimes }) {
             <div className="mb-4 flex flex-col">
                 <label className="mb-2 text-sm font-semibold">Thời gian xác nhận đơn hàng *</label>
                 <div className="flex flex-wrap">
-                    <CheckboxGroup values={times} setValues={handleTimeChange}>
+                    <CheckboxGroup
+                        values={formik.values.orderConfirmationTimes}
+                        setValues={handleTimeChange}
+                    >
                         {orderConfirmationTimes?.map((time) => (
                             <CheckboxGroup.Option
                                 key={time.id}
@@ -323,6 +360,7 @@ function FormDelivery({ orderConfirmationTimes }) {
                     disabled={
                         Object.keys(formik.errors).length !== 0 ||
                         orderConfirmationTimeError ||
+                        products?.length === 0 ||
                         peddingSubmit
                     }
                     className={clsx('min-w-[10rem] xs:w-full')}
@@ -343,7 +381,6 @@ export async function getServerSideProps() {
                 populate: ['time'],
             },
         });
-        console.log(orderConfirmationTimesRes);
         orderConfirmationTimes = orderConfirmationTimesRes.data.data;
     } catch (e) {
         console.log(e);

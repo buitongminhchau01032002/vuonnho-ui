@@ -1,3 +1,3 @@
-export default function chooseImageUrl(imageAttributes, size) {
-    return imageAttributes?.formats?.[size]?.url ?? imageAttributes?.url;
+export default function chooseImageUrl(image, size) {
+    return image?.formats?.[size]?.url ?? image?.url;
 }

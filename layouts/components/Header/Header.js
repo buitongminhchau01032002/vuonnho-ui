@@ -91,26 +91,21 @@ export default function Header() {
                                 <Popover.Panel className="absolute left-1/2 z-10 -translate-x-1/2">
                                     <div className="w-96 rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
                                         {categories.map((category) => (
-                                            <Link
-                                                key={category.id}
-                                                href={'/' + category?.attributes?.slug}
-                                            >
+                                            <Link key={category.id} href={'/' + category?.slug}>
                                                 <a className="flex w-full items-center rounded-md p-2 hover:bg-gray-200">
                                                     <img
                                                         src={
-                                                            category?.attributes?.image?.data
-                                                                ?.attributes?.formats?.thumbnail
-                                                                ?.url
+                                                            category?.image?.formats?.thumbnail?.url
                                                         }
-                                                        alt={category?.attributes?.name}
+                                                        alt={category?.name}
                                                         className="h-12 w-12 shrink-0 rounded-md"
                                                     />
                                                     <div className="ml-4">
                                                         <p className="text-sm font-semibold text-clr-text-dark">
-                                                            {category?.attributes?.name}
+                                                            {category?.name}
                                                         </p>
                                                         <p className="text-sm">
-                                                            {category?.attributes?.description}
+                                                            {category?.description}
                                                         </p>
                                                     </div>
                                                 </a>

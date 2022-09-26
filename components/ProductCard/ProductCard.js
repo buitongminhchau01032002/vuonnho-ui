@@ -8,9 +8,9 @@ import { cartActions } from '../../redux/slices/cartSlide';
 
 export default function ProductCard({ product, className }) {
     const dispatch = useDispatch();
-    const { name, listPrice, salePrice, images, category, slug } = product?.attributes ?? {};
-    const categorySlug = category?.data?.attributes?.slug;
-    const imageSrc = images?.data?.[0]?.attributes?.formats?.small?.url;
+    const { name, listPrice, salePrice, images, category, slug } = product ?? {};
+    const categorySlug = category?.slug;
+    const imageSrc = images?.[0]?.formats?.small?.url;
     return (
         <Link href={`/${categorySlug}/${slug}`}>
             <a className={clsx('group select-none', { [className]: className })}>

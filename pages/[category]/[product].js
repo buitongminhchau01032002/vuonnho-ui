@@ -22,7 +22,7 @@ import client from '../../axios';
 
 export default function ProductDetailPage({ product, highlightProducts }) {
     const { name, description, detail, listPrice, salePrice, images, category, priceRules, slug } =
-        product?.attributes ?? {};
+        product ?? {};
     const [qty, setQty] = useState(1);
     const dispatch = useDispatch();
     const router = useRouter();
@@ -42,11 +42,11 @@ export default function ProductDetailPage({ product, highlightProducts }) {
                             title: 'Shop',
                         },
                         {
-                            href: '/' + category?.data?.attributes?.slug ?? '/',
-                            title: category?.data?.attributes?.name,
+                            href: '/' + category?.slug ?? '/',
+                            title: category?.name,
                         },
                         {
-                            href: '/' + category?.data?.attributes?.slug + '/' + slug,
+                            href: '/' + category?.slug + '/' + slug,
                             title: name,
                         },
                     ]}
@@ -59,7 +59,7 @@ export default function ProductDetailPage({ product, highlightProducts }) {
                     {/* LEFT */}
                     <div className="flex w-1/2 justify-center pr-6 sm:w-full sm:pr-0">
                         <div className="mb-5 w-full">
-                            <ProductImageSlide images={images?.data} />
+                            <ProductImageSlide images={images} />
                         </div>
                     </div>
 
@@ -189,12 +189,12 @@ function ProductImageSlide({ images }) {
                 >
                     {images &&
                         images.map((image) => (
-                            <SwiperSlide key={image?.attributes?.url}>
+                            <SwiperSlide key={image?.url}>
                                 <div className="aspect-[4/3] overflow-hidden rounded-lg">
                                     <img
-                                        src={image?.attributes?.url}
+                                        src={image?.url}
                                         className="h-full w-full object-cover"
-                                        alt={image?.attributes?.alternativeText}
+                                        alt={image?.alternativeText}
                                     />
                                 </div>
                             </SwiperSlide>
@@ -246,14 +246,14 @@ function ProductImageSlide({ images }) {
                                     onClick={() => setCurrentSlide(index)}
                                 >
                                     <img
-                                        src={image?.attributes?.formats?.thumbnail?.url}
+                                        src={image?.formats?.thumbnail?.url}
                                         className={clsx(
                                             'h-full w-full cursor-pointer rounded-sm object-cover ring-primary',
                                             {
                                                 'ring-4': index === currentSlide,
                                             }
                                         )}
-                                        alt={image?.attributes?.alternativeText}
+                                        alt={image?.alternativeText}
                                     />
                                 </div>
                             </SwiperSlide>

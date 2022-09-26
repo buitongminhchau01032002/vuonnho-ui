@@ -59,12 +59,9 @@ export default function MobileMenu({ categories, isOpen, className, handleClose 
                                 <Disclosure.Panel className="flex flex-col">
                                     <div className="ml-3">
                                         {categories.map((category) => (
-                                            <Link
-                                                key={category.id}
-                                                href={'/' + category?.attributes?.slug}
-                                            >
+                                            <Link key={category.id} href={'/' + category?.slug}>
                                                 <a className="block px-3 py-3 text-sm font-medium hover:text-clr-text-dark">
-                                                    {category?.attributes?.name}
+                                                    {category?.name}
                                                 </a>
                                             </Link>
                                         ))}

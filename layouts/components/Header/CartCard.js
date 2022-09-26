@@ -21,19 +21,9 @@ export default function CartCard({ productCart, className }) {
     return (
         <li className={clsx('flex py-5', { [className]: className })}>
             <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 xs:w-20">
-                <Link
-                    href={
-                        '/' +
-                        productCart?.attributes?.category?.data?.attributes?.slug +
-                        '/' +
-                        productCart?.attributes?.slug
-                    }
-                >
+                <Link href={'/' + productCart?.category?.slug + '/' + productCart?.slug}>
                     <img
-                        src={chooseImageUrl(
-                            productCart?.attributes?.images?.data[0]?.attributes,
-                            'thumbnail'
-                        )}
+                        src={chooseImageUrl(productCart?.images?.[0], 'thumbnail')}
                         alt="Salmon orange fabric pouch with match zipper, gray zipper pull, and adjustable hip belt."
                         className="h-full w-full cursor-pointer object-cover object-center"
                     />
@@ -42,31 +32,20 @@ export default function CartCard({ productCart, className }) {
 
             <div className="ml-4 flex flex-1 flex-col xs:ml-2">
                 <div>
-                    <Link
-                        href={
-                            '/' +
-                            productCart?.attributes?.category?.data?.attributes?.slug +
-                            '/' +
-                            productCart?.attributes?.slug
-                        }
-                    >
+                    <Link href={'/' + productCart?.category?.slug + '/' + productCart?.slug}>
                         <a>
-                            <h3>{productCart?.attributes?.name}</h3>
+                            <h3>{productCart?.name}</h3>
                         </a>
                     </Link>
                     <div className="flex items-baseline">
                         <p className="font-medium text-clr-text-dark">
-                            <PriceFomater>{productCart?.attributes?.salePrice ?? ''}</PriceFomater>
+                            <PriceFomater>{productCart?.salePrice ?? ''}</PriceFomater>
                         </p>
-                        {productCart?.attributes?.listPrice &&
-                            productCart?.attributes?.listPrice >
-                                productCart?.attributes?.salePrice && (
-                                <p className="ml-3 text-xs line-through">
-                                    <PriceFomater>
-                                        {productCart?.attributes?.listPrice ?? ''}
-                                    </PriceFomater>
-                                </p>
-                            )}
+                        {productCart?.listPrice && productCart?.listPrice > productCart?.salePrice && (
+                            <p className="ml-3 text-xs line-through">
+                                <PriceFomater>{productCart?.listPrice ?? ''}</PriceFomater>
+                            </p>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-1 items-end justify-between ">

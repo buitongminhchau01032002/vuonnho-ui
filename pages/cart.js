@@ -128,19 +128,9 @@ function ProductCard({ productCart, className }) {
     return (
         <li className={clsx('flex py-3', { [className]: className })}>
             <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md xs:w-20">
-                <Link
-                    href={
-                        '/' +
-                        productCart?.attributes?.category?.data?.attributes?.slug +
-                        '/' +
-                        productCart?.attributes?.slug
-                    }
-                >
+                <Link href={'/' + productCart?.category?.slug + '/' + productCart?.slug}>
                     <img
-                        src={chooseImageUrl(
-                            productCart?.attributes?.images?.data?.[0]?.attributes,
-                            'thumbnail'
-                        )}
+                        src={chooseImageUrl(productCart?.images?.[0], 'thumbnail')}
                         alt="Salmon orange fabric pouch with match zipper, gray zipper pull, and adjustable hip belt."
                         className="h-full w-full cursor-pointer object-cover object-center"
                     />
@@ -150,31 +140,21 @@ function ProductCard({ productCart, className }) {
             <div className="ml-4 flex flex-1 flex-col justify-between xs:ml-2">
                 <div className="flex items-start">
                     <div className="flex-1">
-                        <Link
-                            href={
-                                '/' +
-                                productCart?.attributes?.category?.data?.attributes?.slug +
-                                '/' +
-                                productCart?.attributes?.slug
-                            }
-                        >
+                        <Link href={'/' + productCart?.category?.slug + '/' + productCart?.slug}>
                             <a>
                                 <h3 className="font-semibold text-clr-text-dark">
-                                    {productCart?.attributes?.name}
+                                    {productCart?.name}
                                 </h3>
                             </a>
                         </Link>
                         <div className="mt-1 flex flex-wrap-reverse items-baseline">
                             <p className="mr-3 font-medium">
-                                <PriceFomater>{productCart?.attributes?.salePrice}</PriceFomater>
+                                <PriceFomater>{productCart?.salePrice}</PriceFomater>
                             </p>
-                            {productCart?.attributes?.listPrice &&
-                                productCart?.attributes?.listPrice >
-                                    productCart?.attributes?.salePrice && (
+                            {productCart?.listPrice &&
+                                productCart?.listPrice > productCart?.salePrice && (
                                     <p className="text-xs line-through">
-                                        <PriceFomater>
-                                            {productCart?.attributes?.listPrice}
-                                        </PriceFomater>
+                                        <PriceFomater>{productCart?.listPrice}</PriceFomater>
                                     </p>
                                 )}
                         </div>
@@ -356,9 +336,9 @@ function FormDelivery({ products, orderConfirmationTimes }) {
                                     )
                                 }
                             >
-                                {formatTime(time?.attributes?.time?.begin) +
+                                {formatTime(time?.time?.begin) +
                                     ' - ' +
-                                    formatTime(time?.attributes?.time?.end)}
+                                    formatTime(time?.time?.end)}
                             </CheckboxGroup.Option>
                         ))}
                     </CheckboxGroup>

@@ -5,7 +5,16 @@ const initialState = {
     /**
      * id
      * quantity
-     * attributes
+     * name
+     * slug
+     * description
+     * detail
+     * listPrice
+     * salePrice
+     * priceRules
+     * images
+     * category
+     *
      * totalPrice
      */
     billing: {
@@ -21,13 +30,13 @@ function updateBilling(state) {
     let totalMoney = 0;
     for (let i = 0; i < state.products.length; i++) {
         const product = state.products[i];
-        if (product.attributes?.priceRules?.length === 0) {
-            const totalPrice = product.quantity * product.attributes?.salePrice;
+        if (product.priceRules?.length === 0) {
+            const totalPrice = product.quantity * product.salePrice;
             product.totalPrice = totalPrice;
             totalMoney += totalPrice;
         } else {
-            // [...product.attributes?.priceRules] To fix sort
-            const priceRulesSorted = [...product.attributes?.priceRules].sort(
+            // [...product.priceRules] To fix sort
+            const priceRulesSorted = [...product.priceRules].sort(
                 (a, b) => b.minQuantity - a.minQuantity
             );
             let quantity = product.quantity;
@@ -38,7 +47,7 @@ function updateBilling(state) {
                 totalPrice += quantityOfRule * priceRule.price;
                 quantity -= quantityOfRule;
             });
-            totalPrice += quantity * product.attributes?.salePrice;
+            totalPrice += quantity * product.salePrice;
             product.totalPrice = totalPrice;
             totalMoney += totalPrice;
         }

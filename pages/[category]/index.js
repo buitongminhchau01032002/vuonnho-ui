@@ -49,8 +49,6 @@ export default function ShopPage({ products, category, meta }) {
     const [sortSelected, setSortSelected] = useState(sort[0]);
     const [currentPage, setCurrentPage] = useState(page - 1);
 
-    const categoryAttributes = category?.attributes;
-
     useEffect(() => {
         const newRoute = {
             href: router.asPath,
@@ -79,20 +77,20 @@ export default function ShopPage({ products, category, meta }) {
             title: 'Shop',
         },
     ];
-    if (categoryAttributes?.slug !== 'shop') {
+    if (category?.slug !== 'shop') {
         valueBreadcrumbs.push({
-            href: '/' + categoryAttributes?.slug,
-            title: categoryAttributes?.name,
+            href: '/' + category?.slug,
+            title: category?.name,
         });
     }
     return (
         <DefaultLayout
             head={{
-                title: 'Vườn nhỏ | ' + (categoryAttributes?.name || ''),
+                title: 'Vườn nhỏ | ' + (category?.name || ''),
                 metas: [
                     {
                         name: 'description',
-                        content: categoryAttributes?.description || 'Vườn nhỏ',
+                        content: category?.description || 'Vườn nhỏ',
                     },
                 ],
             }}
@@ -106,11 +104,10 @@ export default function ShopPage({ products, category, meta }) {
             <section className="flex justify-center px-p-body">
                 <div className="w-full max-w-container py-14">
                     <h2 className="text-3xl font-bold text-clr-text-dark">
-                        {categoryAttributes?.name || 'Vườn nhỏ shop'}
+                        {category?.name || 'Vườn nhỏ shop'}
                     </h2>
                     <p className="mt-2 max-w-2xl text-sm">
-                        {categoryAttributes?.description ||
-                            'Chậu cảnh, phân bón, dụng cụ làm vườn...'}
+                        {category?.description || 'Chậu cảnh, phân bón, dụng cụ làm vườn...'}
                     </p>
                 </div>
             </section>
@@ -277,7 +274,7 @@ export default function ShopPage({ products, category, meta }) {
             </section>
 
             {/* PAGINATION */}
-            <div className="mt-6 flex justify-center px-p-body">
+            <div className="mt-10 flex justify-center px-p-body">
                 <Pagination
                     className="flex w-full max-w-container select-none items-center justify-between xxs:justify-center"
                     currentPage={currentPage}
@@ -322,11 +319,9 @@ export async function getServerSideProps({ params, query }) {
 
     if (categorySlug === 'shop') {
         category = {
-            attributes: {
-                name: 'Vườn nhỏ shop',
-                description: 'Chậu cảnh, phân bón, dụng cụ làm vườn...',
-                slug: 'shop',
-            },
+            name: 'Vườn nhỏ shop',
+            description: 'Chậu cảnh, phân bón, dụng cụ làm vườn...',
+            slug: 'shop',
         };
     } else {
         const categoryRes = await client.get(`/categories/find-by-slug/${categorySlug}`, {

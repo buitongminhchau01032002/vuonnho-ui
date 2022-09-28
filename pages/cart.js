@@ -257,6 +257,7 @@ function FormDelivery({ cart, orderConfirmationTimes }) {
                 } catch (e) {
                     console.log(e);
                     setOpenErrorDialog(true);
+                    setPeddingSubmit(false);
                 }
             }
             handleOrder();

@@ -84,6 +84,11 @@ export const cartSlice = createSlice({
             updateBilling(state);
         },
 
+        // action: {products, billing}
+        update: (state, action) => {
+            return action.payload;
+        },
+
         // action: {id, quantity}
         updateQuantity: (state, action) => {
             const indexProduct = state.products.findIndex(

@@ -7,6 +7,7 @@ import { useFormik } from 'formik';
 import { useDebouncedCallback } from 'use-debounce';
 import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
+import { Dialog, Transition } from '@headlessui/react';
 
 import { cartActions } from '../redux/slices/cartSlide';
 import DefaultLayout from '../layouts/DefaultLayout';
@@ -105,10 +106,7 @@ export default function Cart({ orderConfirmationTimes }) {
                         <h4 className="mb-4 text-lg font-semibold text-clr-text-dark">
                             Thông tin nhận hàng
                         </h4>
-                        <FormDelivery
-                            products={cart?.products}
-                            orderConfirmationTimes={orderConfirmationTimes}
-                        />
+                        <FormDelivery cart={cart} orderConfirmationTimes={orderConfirmationTimes} />
                     </div>
                 </div>
             </section>
@@ -190,12 +188,16 @@ function ProductCard({ productCart, className }) {
     );
 }
 
-function FormDelivery({ products, orderConfirmationTimes }) {
+function FormDelivery({ cart, orderConfirmationTimes }) {
+    const dispatch = useDispatch();
+    const products = cart?.products;
     const [orderConfirmationTimeError, setOrderConfirmationTimeError] = useState(
         'Chọn ít nhất 1 khoảng thời gian'
     );
     const [orderConfirmationTimeTouched, setOrderConfirmationTimeTouched] = useState(false);
     const [peddingSubmit, setPeddingSubmit] = useState(false);
+    const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
+    const [openErrorDialog, setOpenErrorDialog] = useState(false);
 
     const validationSchema = Yup.object({
         name: Yup.string()
@@ -219,13 +221,45 @@ function FormDelivery({ products, orderConfirmationTimes }) {
             orderConfirmationTimes: [],
         },
         validationSchema,
-        onSubmit: (values) => {
+        onSubmit: (values, { resetForm }) => {
             setPeddingSubmit(true);
-            // todo: CALL API
-            setTimeout(() => {
-                setPeddingSubmit(false);
-                alert(JSON.stringify(values));
-            }, 2000);
+
+            async function handleOrder() {
+                try {
+                    // VALIDATE CART
+                    const validateRes = await client.post('/orders/validate-and-order', {
+                        ...values,
+                        ...cart,
+                    });
+                    if (validateRes.data.error) {
+                        setOpenErrorDialog(true);
+                        setPeddingSubmit(false);
+                        console.log(validateRes.data.error);
+                        dispatch(cartActions.update(validateRes.data.error.details.validCart));
+                        return;
+                    }
+
+                    dispatch(
+                        cartActions.update({
+                            products: [],
+                            billing: {
+                                numOfProducts: 0,
+                                totalMoney: 0,
+                                discountMoney: 0,
+                                intoMoney: 0,
+                            },
+                        })
+                    );
+                    resetForm();
+                    formik.setFieldValue('orderConfirmationTimes', []);
+                    setOpenSuccessDialog(true);
+                    setPeddingSubmit(false);
+                } catch (e) {
+                    console.log(e);
+                    setOpenErrorDialog(true);
+                }
+            }
+            handleOrder();
         },
     });
 
@@ -247,123 +281,255 @@ function FormDelivery({ products, orderConfirmationTimes }) {
     }
 
     return (
-        <form onSubmit={formik.handleSubmit}>
-            <div className="mb-4 flex flex-col">
-                <label className="mb-2 text-sm font-semibold">Họ tên *</label>
-                <input
-                    type="text"
-                    name="name"
-                    className={clsx(
-                        'rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
-                        {
-                            '!ring-red-500 focus:!ring-1 ':
-                                formik.touched.name && formik.errors.name,
-                        }
+        <>
+            <form onSubmit={formik.handleSubmit}>
+                <div className="mb-4 flex flex-col">
+                    <label className="mb-2 text-sm font-semibold">Họ tên *</label>
+                    <input
+                        type="text"
+                        name="name"
+                        className={clsx(
+                            'rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
+                            {
+                                '!ring-red-500 focus:!ring-1 ':
+                                    formik.touched.name && formik.errors.name,
+                            }
+                        )}
+                        placeholder="VD: Nguyễn Văn A"
+                        onBlur={formik.handleBlur}
+                        onChange={formik.handleChange}
+                        value={formik.values.name}
+                    />
+                    {formik.touched.name && formik.errors.name && (
+                        <div className="text-sm text-red-500">{formik.errors.name}</div>
                     )}
-                    placeholder="VD: Nguyễn Văn A"
-                    onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
-                    value={formik.values.name}
-                />
-                {formik.touched.name && formik.errors.name && (
-                    <div className="text-sm text-red-500">{formik.errors.name}</div>
-                )}
-            </div>
-            <div className="mb-4 flex flex-col">
-                <label className="mb-2 text-sm font-semibold">Số điện thoại *</label>
-                <input
-                    type="text"
-                    name="phone"
-                    className={clsx(
-                        'rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
-                        {
-                            '!ring-red-500 focus:!ring-1':
-                                formik.touched.phone && formik.errors.phone,
-                        }
-                    )}
-                    placeholder="VD: 0123456789"
-                    onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
-                    value={formik.values.phone}
-                />
-                {formik.touched.phone && formik.errors.phone && (
-                    <div className="text-sm text-red-500">{formik.errors.phone}</div>
-                )}
-            </div>
-            <div className="mb-4 flex flex-col">
-                <label className="mb-2 text-sm font-semibold">Địa chỉ nhận hàng *</label>
-                <textarea
-                    rows="3"
-                    name="address"
-                    className={clsx(
-                        'resize-none rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
-                        {
-                            '!ring-red-500 focus:!ring-1':
-                                formik.touched.address && formik.errors.address,
-                        }
-                    )}
-                    placeholder="VD: Số 100, đường Gì Đó, Phường 50, quận Ngẫu Nhiên, TPHCM"
-                    onBlur={formik.handleBlur}
-                    onChange={formik.handleChange}
-                    value={formik.values.address}
-                ></textarea>
-                {formik.touched.address && formik.errors.address && (
-                    <div className="text-sm text-red-500">{formik.errors.address}</div>
-                )}
-            </div>
-            <div className="mb-4 flex flex-col">
-                <label className="mb-2 text-sm font-semibold">Thời gian xác nhận đơn hàng *</label>
-                <div className="flex flex-wrap">
-                    <CheckboxGroup
-                        values={formik.values.orderConfirmationTimes}
-                        setValues={handleTimeChange}
-                    >
-                        {orderConfirmationTimes?.map((time) => (
-                            <CheckboxGroup.Option
-                                key={time.id}
-                                value={time.id}
-                                as="div"
-                                className={({ selected }) =>
-                                    clsx(
-                                        ' mr-2 mt-2 cursor-pointer rounded-sm px-3 py-2 text-sm font-medium ring-1  transition-colors ',
-
-                                        {
-                                            'ring-gray-300 can-hover:hover:ring-gray-400':
-                                                !selected,
-                                            'bg-primary text-[#fff] ring-primary can-hover:hover:bg-primary-dark':
-                                                selected,
-                                        }
-                                    )
-                                }
-                            >
-                                {formatTime(time?.time?.begin) +
-                                    ' - ' +
-                                    formatTime(time?.time?.end)}
-                            </CheckboxGroup.Option>
-                        ))}
-                    </CheckboxGroup>
                 </div>
-                {orderConfirmationTimeError && orderConfirmationTimeTouched && (
-                    <div className="text-sm text-red-500">{orderConfirmationTimeError}</div>
-                )}
-            </div>
-            <div className="mt-10 flex flex-wrap">
-                <Button
-                    lg
-                    type="submit"
-                    disabled={
-                        Object.keys(formik.errors).length !== 0 ||
-                        orderConfirmationTimeError ||
-                        products?.length === 0 ||
-                        peddingSubmit
-                    }
-                    className={clsx('min-w-[10rem] xs:w-full')}
+                <div className="mb-4 flex flex-col">
+                    <label className="mb-2 text-sm font-semibold">Số điện thoại *</label>
+                    <input
+                        type="text"
+                        name="phone"
+                        className={clsx(
+                            'rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
+                            {
+                                '!ring-red-500 focus:!ring-1':
+                                    formik.touched.phone && formik.errors.phone,
+                            }
+                        )}
+                        placeholder="VD: 0123456789"
+                        onBlur={formik.handleBlur}
+                        onChange={formik.handleChange}
+                        value={formik.values.phone}
+                    />
+                    {formik.touched.phone && formik.errors.phone && (
+                        <div className="text-sm text-red-500">{formik.errors.phone}</div>
+                    )}
+                </div>
+                <div className="mb-4 flex flex-col">
+                    <label className="mb-2 text-sm font-semibold">Địa chỉ nhận hàng *</label>
+                    <textarea
+                        rows="3"
+                        name="address"
+                        className={clsx(
+                            'resize-none rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
+                            {
+                                '!ring-red-500 focus:!ring-1':
+                                    formik.touched.address && formik.errors.address,
+                            }
+                        )}
+                        placeholder="VD: Số 100, đường Gì Đó, Phường 50, quận Ngẫu Nhiên, TPHCM"
+                        onBlur={formik.handleBlur}
+                        onChange={formik.handleChange}
+                        value={formik.values.address}
+                    ></textarea>
+                    {formik.touched.address && formik.errors.address && (
+                        <div className="text-sm text-red-500">{formik.errors.address}</div>
+                    )}
+                </div>
+                <div className="mb-4 flex flex-col">
+                    <label className="mb-2 text-sm font-semibold">
+                        Thời gian xác nhận đơn hàng *
+                    </label>
+                    <div className="flex flex-wrap">
+                        <CheckboxGroup
+                            values={formik.values.orderConfirmationTimes}
+                            setValues={handleTimeChange}
+                        >
+                            {orderConfirmationTimes?.map((time) => (
+                                <CheckboxGroup.Option
+                                    key={time.id}
+                                    value={time.time}
+                                    as="div"
+                                    className={({ selected }) =>
+                                        clsx(
+                                            ' mr-2 mt-2 cursor-pointer rounded-sm px-3 py-2 text-sm font-medium ring-1  transition-colors ',
+
+                                            {
+                                                'ring-gray-300 can-hover:hover:ring-gray-400':
+                                                    !selected,
+                                                'bg-primary text-[#fff] ring-primary can-hover:hover:bg-primary-dark':
+                                                    selected,
+                                            }
+                                        )
+                                    }
+                                >
+                                    {formatTime(time?.time?.begin) +
+                                        ' - ' +
+                                        formatTime(time?.time?.end)}
+                                </CheckboxGroup.Option>
+                            ))}
+                        </CheckboxGroup>
+                    </div>
+                    {orderConfirmationTimeError && orderConfirmationTimeTouched && (
+                        <div className="text-sm text-red-500">{orderConfirmationTimeError}</div>
+                    )}
+                </div>
+                <div className="mt-10 flex flex-wrap">
+                    <Button
+                        lg
+                        type="submit"
+                        disabled={
+                            Object.keys(formik.errors).length !== 0 ||
+                            orderConfirmationTimeError ||
+                            products?.length === 0 ||
+                            peddingSubmit
+                        }
+                        className={clsx('min-w-[10rem] xs:w-full')}
+                    >
+                        {peddingSubmit && <LoadingIcon className="mr-2 h-5 w-5 animate-spin" />}
+                        {!peddingSubmit ? <span>Đặt hàng</span> : <span>Đang đặt hàng</span>}
+                    </Button>
+                </div>
+            </form>
+
+            <SuccessDialog
+                title="Đặt hàng thành công!"
+                description="Bạn đã đặt hàng thành công"
+                isOpen={openSuccessDialog}
+                setIsOpen={setOpenSuccessDialog}
+                buttons={
+                    <>
+                        <Button className="sm:w-full" onClick={() => setOpenSuccessDialog(false)}>
+                            Đồng ý
+                        </Button>
+                    </>
+                }
+            />
+
+            <ErrorDialog
+                title="Lỗi đặt hàng!"
+                description="Đã xảy ra lỗi trong quá trình đặt hàng. Vui lòng kiểm tra lại giỏ hàng và thử lại. Hãy liên hệ với shop nếu cần thiết."
+                isOpen={openErrorDialog}
+                setIsOpen={setOpenErrorDialog}
+                buttons={
+                    <>
+                        <Button
+                            secondary
+                            className="sm:w-full"
+                            onClick={() => setOpenErrorDialog(false)}
+                        >
+                            Đồng ý
+                        </Button>
+                    </>
+                }
+            />
+        </>
+    );
+}
+
+function SuccessDialog({ title, description, buttons, isOpen, setIsOpen }) {
+    return (
+        <Transition appear show={isOpen} as={Fragment}>
+            <Dialog as="div" className="relative z-[1000]" onClose={() => setIsOpen(false)}>
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
                 >
-                    {peddingSubmit && <LoadingIcon className="mr-2 h-5 w-5 animate-spin" />}
-                    {!peddingSubmit ? <span>Đặt hàng</span> : <span>Đang đặt hàng</span>}
-                </Button>
-            </div>
-        </form>
+                    <div className="fixed inset-0 bg-black bg-opacity-30" />
+                </Transition.Child>
+
+                <div className="fixed inset-0 overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                        <Transition.Child
+                            as={Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0 scale-95"
+                            enterTo="opacity-100 scale-100"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100 scale-100"
+                            leaveTo="opacity-0 scale-95"
+                        >
+                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                <Dialog.Title
+                                    as="h3"
+                                    className="text-lg font-semibold leading-6 text-clr-text-dark"
+                                >
+                                    {title}
+                                </Dialog.Title>
+                                <div className="mt-2">
+                                    <p>{description}</p>
+                                </div>
+
+                                <div className="mt-4">{buttons}</div>
+                            </Dialog.Panel>
+                        </Transition.Child>
+                    </div>
+                </div>
+            </Dialog>
+        </Transition>
+    );
+}
+
+function ErrorDialog({ title, description, buttons, isOpen, setIsOpen }) {
+    return (
+        <Transition appear show={isOpen} as={Fragment}>
+            <Dialog as="div" className="relative z-[1000]" onClose={() => setIsOpen(false)}>
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-black bg-opacity-30" />
+                </Transition.Child>
+
+                <div className="fixed inset-0 overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                        <Transition.Child
+                            as={Fragment}
+                            enter="ease-out duration-300"
+                            enterFrom="opacity-0 scale-95"
+                            enterTo="opacity-100 scale-100"
+                            leave="ease-in duration-200"
+                            leaveFrom="opacity-100 scale-100"
+                            leaveTo="opacity-0 scale-95"
+                        >
+                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg border bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                <Dialog.Title
+                                    as="h3"
+                                    className="text-lg font-semibold leading-6 text-red-500"
+                                >
+                                    {title}
+                                </Dialog.Title>
+                                <div className="mt-2">
+                                    <p>{description}</p>
+                                </div>
+
+                                <div className="mt-4">{buttons}</div>
+                            </Dialog.Panel>
+                        </Transition.Child>
+                    </div>
+                </div>
+            </Dialog>
+        </Transition>
     );
 }
 

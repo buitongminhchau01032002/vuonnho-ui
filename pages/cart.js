@@ -219,6 +219,7 @@ function FormDelivery({ cart, orderConfirmationTimes }) {
             phone: '',
             address: '',
             orderConfirmationTimes: [],
+            note: '',
         },
         validationSchema,
         onSubmit: (values, { resetForm }) => {
@@ -383,6 +384,27 @@ function FormDelivery({ cart, orderConfirmationTimes }) {
                     </div>
                     {orderConfirmationTimeError && orderConfirmationTimeTouched && (
                         <div className="text-sm text-red-500">{orderConfirmationTimeError}</div>
+                    )}
+                </div>
+                <div className="mb-4 flex flex-col">
+                    <label className="mb-2 text-sm font-semibold">Ghi chú</label>
+                    <textarea
+                        rows="3"
+                        name="note"
+                        className={clsx(
+                            'resize-none rounded px-3 py-2 ring-1 ring-gray-300 hover:ring-gray-400 focus:ring-2 focus:ring-primary',
+                            {
+                                '!ring-red-500 focus:!ring-1':
+                                    formik.touched.note && formik.errors.note,
+                            }
+                        )}
+                        placeholder="VD: Chậu cổ cao màu vàng."
+                        onBlur={formik.handleBlur}
+                        onChange={formik.handleChange}
+                        value={formik.values.note}
+                    ></textarea>
+                    {formik.touched.note && formik.errors.note && (
+                        <div className="text-sm text-red-500">{formik.errors.note}</div>
                     )}
                 </div>
                 <div className="mt-10 flex flex-wrap">
